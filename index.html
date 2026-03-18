@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Budget</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
 <style>
@@ -324,10 +326,13 @@ body {
   cursor: default;
 }
 .dep-row.paid {
-  opacity: 0.55;
-  background: var(--green-dim);
-  border-color: transparent;
+  opacity: 0.75;
+  background: var(--surface3);
+  border-color: var(--border);
+  border-left-color: var(--green) !important;
 }
+.dep-row.paid .dep-name { text-decoration: line-through; color: var(--text2); }
+.dep-row.paid .dep-amount { color: var(--text2); }
 .dep-row.recurring { border-left: 3px solid var(--blue); }
 .dep-row.ponctuel { border-left: 3px solid var(--orange); }
 
@@ -355,7 +360,6 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.dep-row.paid .dep-name { text-decoration: line-through; color: var(--text3); }
 .dep-meta {
   display: flex;
   gap: 6px;
@@ -383,7 +387,6 @@ body {
   white-space: nowrap;
 }
 .dep-row:not(.paid) .dep-amount { color: var(--orange); }
-.dep-row.paid .dep-amount { color: var(--text3); }
 
 .dep-actions { display: flex; gap: 4px; }
 
@@ -804,14 +807,6 @@ body {
           <div class="gauge-wrap">
             <div class="gauge-track"><div class="gauge-fill ok" id="gaugeReal" style="width:0%"></div></div>
             <div class="gauge-label" id="gaugeRealLbl"></div>
-          </div>
-        </div>
-        <div class="kpi kpi-wide" id="kpiForeCard">
-          <div class="kpi-label">Reste à vivre prévisionnel</div>
-          <div class="kpi-value" id="kpiFore">0 €</div>
-          <div class="gauge-wrap">
-            <div class="gauge-track"><div class="gauge-fill ok" id="gaugeFore" style="width:0%"></div></div>
-            <div class="gauge-label" id="gaugeFore2Lbl"></div>
           </div>
         </div>
       </div>
@@ -1247,7 +1242,6 @@ function renderKPIs() {
   document.getElementById('kpiPaid').textContent = fmt(s.paid);
   document.getElementById('kpiRemaining').textContent = fmt(s.unpaid);
   document.getElementById('kpiReal').textContent = fmt(s.real);
-  document.getElementById('kpiFore').textContent = fmt(s.forecast);
 
   const kpiPaidCard = document.getElementById('kpiPaidCard');
   kpiPaidCard.className = 'kpi ' + (s.paid > 0 ? 'green' : '');
@@ -1263,23 +1257,10 @@ function renderKPIs() {
   if (s.real < 0) { kpiRealCard.className = 'kpi kpi-wide danger'; }
   else { kpiRealCard.className = 'kpi accent kpi-wide'; }
 
-  // Forecast gauge
-  const forePct = s.revenus > 0 ? Math.min(100, Math.max(0, (s.forecast / s.revenus) * 100)) : 0;
-  const gaugeFore = document.getElementById('gaugeFore');
-  gaugeFore.style.width = forePct + '%';
-  gaugeFore.className = 'gauge-fill ' + (forePct > 50 ? 'ok' : forePct > 10 ? 'warn' : 'danger');
-  document.getElementById('gaugeFore2Lbl').textContent = `${Math.round(forePct)}% des revenus`;
-
-  const kpiForeCard = document.getElementById('kpiForeCard');
-  if (s.forecast < 0) { kpiForeCard.className = 'kpi kpi-wide danger'; kpiForeCard.querySelector('.kpi-label').style.color = '#f08080'; }
-  else { kpiForeCard.className = 'kpi kpi-wide'; kpiForeCard.querySelector('.kpi-label').style.color = ''; }
-
   // Alerts
   const zone = document.getElementById('alertZone');
   zone.innerHTML = '';
-  if (s.forecast < 0) zone.innerHTML += `<div class="alert">⚠️ Attention : les dépenses prévues dépassent vos revenus de ${fmt(Math.abs(s.forecast))}.</div>`;
-  else if (s.forecast < s.revenus * 0.1 && s.revenus > 0) zone.innerHTML += `<div class="alert alert-warn">⚡ Reste à vivre prévisionnel très faible : ${fmt(s.forecast)}.</div>`;
-  if (s.real < 0) zone.innerHTML += `<div class="alert">🔴 Reste à vivre réel négatif ! ${fmt(s.real)}</div>`;
+  if (s.real < 0) zone.innerHTML += `<div class="alert">🔴 Reste à vivre négatif ! ${fmt(s.real)}</div>`;
 }
 
 function renderRevenuList() {
