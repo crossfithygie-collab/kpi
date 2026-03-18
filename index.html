@@ -1598,10 +1598,21 @@ function saveDepense() {
       }
     }
   } else {
-    m.depenses.push({ id: uid(), nom, montant, categorie: cat, date, commentaire: comment, type: currentType, paid: false, createdAt: Date.now() });
+    const newId = uid();
+    const dayOfMonth = date ? parseInt(date.split('-')[2]) : 1;
+    // Si récurrente : crée le template et l'injecte dans les mois futurs déjà ouverts
+    let templateId = null;
+    if (currentType === 'recurrente') {
+      const newTemplate = { id: uid(), nom, montant, categorie: cat, dayOfMonth, commentaire: comment };
+      state.recTemplates.push(newTemplate);
+      templateId = newTemplate.id;
+      // Injecte dans tous les mois futurs déjà créés
+      propagateTemplateUpdate(newTemplate, currentKey());
+    }
+    m.depenses.push({ id: newId, templateId, nom, montant, categorie: cat, date, commentaire: comment, type: currentType, paid: false, createdAt: Date.now() });
   }
 
-  if (saveAsTemplate && !editingDepId) {
+  if (saveAsTemplate && !editingDepId && currentType !== 'recurrente') {
     const dayOfMonth = date ? parseInt(date.split('-')[2]) : 1;
     state.recTemplates.push({ id: uid(), nom, montant, categorie: cat, dayOfMonth, commentaire: comment });
   }
@@ -1611,9 +1622,30 @@ function saveDepense() {
 }
 
 function deleteDepense(id) {
-  showConfirm('Supprimer la dépense', 'Cette action est irréversible.', () => {
-    const m = state.months[currentKey()];
-    m.depenses = m.depenses.filter(d => d.id !== id);
+  const m = state.months[currentKey()];
+  const d = m.depenses.find(x => x.id === id);
+  const isRec = d && d.templateId;
+
+  const msg = isRec
+    ? 'Supprimer cette charge sur ce mois ET tous les mois suivants ?'
+    : 'Cette action est irréversible.';
+
+  showConfirm('Supprimer la dépense', msg, () => {
+    if (isRec) {
+      const templateId = d.templateId;
+      // Supprime le template
+      state.recTemplates = state.recTemplates.filter(t => t.id !== templateId);
+      // Supprime dans le mois courant + tous les mois futurs (non payés)
+      Object.keys(state.months)
+        .filter(k => k >= currentKey())
+        .forEach(k => {
+          state.months[k].depenses = state.months[k].depenses.filter(dep =>
+            !(dep.templateId === templateId && !dep.paid)
+          );
+        });
+    } else {
+      m.depenses = m.depenses.filter(dep => dep.id !== id);
+    }
     save(); renderAll();
     toast('Dépense supprimée');
   });
