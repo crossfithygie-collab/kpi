@@ -808,6 +808,10 @@ body {
             <div class="gauge-track"><div class="gauge-fill ok" id="gaugeReal" style="width:0%"></div></div>
             <div class="gauge-label" id="gaugeRealLbl"></div>
           </div>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:0.72rem;color:var(--text3);letter-spacing:0.04em;text-transform:uppercase;">Prévu fin de mois</span>
+            <span id="kpiForeSmall" style="font-family:'DM Mono',monospace;font-size:0.9rem;font-weight:500;"></span>
+          </div>
         </div>
       </div>
 
@@ -1256,6 +1260,11 @@ function renderKPIs() {
   const kpiRealCard = document.getElementById('kpiRealCard');
   if (s.real < 0) { kpiRealCard.className = 'kpi kpi-wide danger'; }
   else { kpiRealCard.className = 'kpi accent kpi-wide'; }
+
+  // Prévu fin de mois (sous-ligne)
+  const foreEl = document.getElementById('kpiForeSmall');
+  foreEl.textContent = fmt(s.forecast);
+  foreEl.style.color = s.forecast < 0 ? 'var(--red)' : s.forecast < s.revenus * 0.1 ? 'var(--orange)' : 'var(--text2)';
 
   // Alerts
   const zone = document.getElementById('alertZone');
