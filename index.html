@@ -773,7 +773,6 @@ body {
   <div class="tabs">
     <button class="tab-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">Dashboard</button>
     <button class="tab-btn" data-tab="depenses" onclick="switchTab('depenses')">Dépenses</button>
-    <button class="tab-btn" data-tab="sync" onclick="switchTab('sync')">Sync</button>
   </div>
 
   <!-- MAIN -->
@@ -1202,7 +1201,6 @@ function renderMonthLabel() {
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === `panel-${tab}`));
-  if (tab === 'sync') refreshExport();
   if (tab === 'depenses') renderDepenses();
 }
 function openTab(tab) { switchTab(tab); }
